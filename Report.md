@@ -222,6 +222,115 @@ moveMotors(leftSpeed , rightSpeed);
 ```
 which applies the same left speed to both left wheels and the same right speed to both right wheels.
 
+
+---
+## Testing
+
+### Case 1
+
+#### Track Description
+- **Material:** Black electrical tape  
+- **Line width:** 3 cm  
+- **Layout features:**  
+  - Curves with wide angles (left/right)  
+  - 90° turns (left/right)  
+  - Zig-zag sections (left/right)  
+- **Surface coefficient of friction:** 0.5  
+
+#### Tests
+
+##### Test 1 - Low kP Test
+- **Initials:** kP = 3, kI = 0, kD = 0, minSpeed = -100, maxSpeed = 100  
+- **Results:** Didn't follow the line, kept moving forward  
+- **Conclusion:** kP too low  
+
+##### Test 2 - High kP Test
+- **Initials:** kP = 300, kI = 0, kD = 0, minSpeed = -100, maxSpeed = 100  
+- **Results:** Follows the line, unstable oscillations  
+- **Conclusion:** Increase kD  
+
+##### Test 3 - kD Tryout
+- **Initials:** kP = 300, kI = 0, kD = 3, minSpeed = -100, maxSpeed = 100  
+- **Results:** Blocks all oscillations, doesn't move forward, left the line  
+- **Conclusion:** kD too high  
+
+##### Test 4 - Halved kD
+- **Initials:** kP = 300, kI = 0, kD = 1.5, minSpeed = -100, maxSpeed = 100  
+- **Results:** Blocks most oscillations, robot moves forward slowly  
+- **Conclusion:** Decrease kD  
+
+##### Test 5 - Halved kD Again
+- **Initials:** kP = 300, kI = 0, kD = 0.75, minSpeed = -100, maxSpeed = 100  
+- **Results:** Moves faster, follows the line  
+- **Conclusion:** Decrease kD  
+
+##### Test 6 - Decreasing kD
+- **Initials:** kP = 300, kI = 0, kD = 0.4, minSpeed = -100, maxSpeed = 100  
+- **Results:** Normal behavior, follows the line  
+- **Conclusion:** Increase speed  
+
+##### Test 7 - Increasing Speed
+- **Initials:** kP = 300, kI = 0, kD = 0.4, minSpeed = -140, maxSpeed = 140  
+- **Results:** Normal behavior, moves faster, follows the line  
+- **Conclusion:** Increase speed again  
+
+##### Test 8 - Increasing Speed Again
+- **Initials:** kP = 300, kI = 0, kD = 0.4, minSpeed = -180, maxSpeed = 180  
+- **Results:** Not smooth oscillations, moves even faster, follows the line  
+- **Conclusion:** kI tryout  
+
+##### Test 9 - kI Test
+- **Initials:** kP = 300, kI = 0.05, kD = 0.4, minSpeed = -180, maxSpeed = 180  
+- **Results:** Smoother oscillations, follows the line  
+- **Conclusion:** Increase speed  
+
+##### Test 10 - Full Speed
+- **Initials:** kP = 300, kI = 0.05, kD = 0.4, minSpeed = -255, maxSpeed = 255  
+- **Results:** Follows the line fast, unsmooth oscillations  
+- **Conclusion:** Decrease kD  
+
+##### Test 11 - Low kD
+- **Initials:** kP = 300, kI = 0.05, kD = 0.1, minSpeed = -255, maxSpeed = 255  
+- **Results:** Follows the line, unsmooth oscillations, slower speed  
+- **Conclusion:** Increase kP  
+
+##### Test 12 - Low kD
+- **Initials:** kP = 500, kI = 0.05, kD = 0.1, minSpeed = -255, maxSpeed = 255  
+- **Results:** Stops moving forward, doesn't follow the line  
+- **Conclusion:** Remove kD, decrease kP  
+
+##### Test 13 - Tryout
+- **Initials:** kP = 100, kI = 0.05, kD = 0, minSpeed = -255, maxSpeed = 255  
+- **Results:** Follows the line, moves fast, has smooth oscillations  
+- **Conclusion:** Decrease kP  
+
+##### Test 14 - Tryout
+- **Initials:** kP = 80, kI = 0.05, kD = 0, minSpeed = -255, maxSpeed = 255  
+- **Results:** Follows the line, moves fast, has smoother oscillations  
+- **Conclusion:** Decrease kP  
+
+##### Test 15 - Tryout
+- **Initials:** kP = 60, kI = 0.05, kD = 0, minSpeed = -255, maxSpeed = 255  
+- **Results:** Follows the line, moves fast, has smoother oscillations  
+- **Conclusion:** Decrease kP  
+
+##### Test 16 - Tryout
+- **Initials:** kP = 40, kI = 0.05, kD = 0, minSpeed = -255, maxSpeed = 255  
+- **Results:** Follows the line, moves fast, has smoother oscillations  
+- **Conclusion:** Decrease kP  
+
+### Case 2
+
+#### Track Description
+- **Material:** Black electrical tape  
+- **Line width:** 1.5 cm  
+- **Layout features:**  
+  - Curves with wide angles (left/right)  
+  - 90° turns (left/right)  
+  - Zig-zag sections (left/right)  
+- **Surface coefficient of friction:** 0.5  
+
+
 ---
 ## Summary
 The line‐following algorithm combines a simple hardware setup (two front IR sensors and four mecanum wheels) with a PID feedback controller.
