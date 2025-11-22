@@ -1,5 +1,5 @@
 # Line Following Algorithm Report
-
+---
 ## Robot Configuration
 The robot is built around an **Arduino-compatible microcontroller** and a **four-wheel mecanum drive**.  
 Each wheel is powered by a **DC motor** driven by an **H-bridge**, so the software can set both the **direction** and the **PWM duty cycle** of every wheel independently.
@@ -182,3 +182,54 @@ In code this is simply:
 double correction = P + I + D;
 ```
 ### Motor Speed Computation
+Let $v_0$ be the nominal forward speed of the robot. The commanded speeds for the left and right sides are:
+
+$$
+v_L(t) = v_0 - \omega(t)
+$$
+
+$$
+v_R(t) = v_0 + \omega(t)
+$$
+
+If  $\omega(t)\$ is positive, the left speed is reduced and the right speed is increased, which makes the robot turn left.  
+If $\omega(t)\$ is negative, the opposite happens and the robot turns right.  
+When $\omega(t) \approx 0 \$, both sides run at the same speed and the robot drives straight ahead.
+
+The corresponding code follows this pattern:
+```cpp
+double leftSpeed = baseSpeed - correction;
+double rightSpeed = baseSpeed + correction;
+
+// limit speeds to allowed range
+leftSpeed = constrain(leftSpeed , minSpeed , maxSpeed);
+rightSpeed = constrain(rightSpeed , minSpeed , maxSpeed);
+```
+These signed speeds are passed to a helper function that sets the motor driver pins for all four wheels.  
+Internally, this function decides the direction (forward or backward) and maps the absolute speed to a PWM value:
+```cpp
+void setMotor(int pwmPin , int dirPin , double speedSigned , bool wiringForward) {
+      bool forwardDesired = (speedSigned >= 0);
+      bool dirState = forwardDesired ? wiringForward : !wiringForward;
+      digitalWrite(dirPin , dirState);
+      int pwmVal = map(abs(speedSigned), 0, maxAbsSpeed , 0, 255);
+      analogWrite(pwmPin , pwmVal);
+}
+```
+The four mecanum wheels are grouped into left and right sides, so the final call looks conceptually like:
+```cpp
+moveMotors(leftSpeed , rightSpeed);
+```
+which applies the same left speed to both left wheels and the same right speed to both right wheels.
+
+---
+## Summary
+The line‐following algorithm combines a simple hardware setup (two front IR sensors and four mecanum wheels) with a PID feedback controller.
+
+The sensors provide a scalar error that measures how far the robot is from the center of the black tape.
+
+The PID loop filters this error, computes proportional, integral and optional derivative contributions, and turns them into a steering correction.
+
+This correction biases the left and right wheel speeds in opposite directions, so the robot continuously adjusts its trajectory and remains centered on the tape.
+
+---
