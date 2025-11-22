@@ -62,4 +62,41 @@ If the robot drifts to the **left**, the right sensor moves onto the tape while 
 The controller must drive this error back to zero by adjusting the speed of the left and right wheels.
 
 ---
-## PID control and its advantages
+## PID Control & Advantages
+To keep the robot on the line we use a PID controller. 
+
+PID stands for Proportional–Integral–Derivative. It is a very common feedback control algorithm in robotics and industry because it is easy to implement, runs efficiently on small microcontrollers, and can be tuned experimentally without requiring an exact mathematical model of the robot.
+
+In continuous time, for an error signal $e(t)$ and a control output $\omega(t)$, the PID law is:
+
+$$
+\omega(t) = K_P\ e(t)
+      + K_I \int e(t)\ dt
+      + K_D \frac{d e(t)}{dt}
+$$
+
+Where:  
+- $K_P$ is the proportional gain  
+- $K_I$ is the integral gain  
+- $K_D$ is the derivative gain  
+
+Each term has a clear role:
+
+**Proportional term** reacts to the current error. A larger deviation from the line produces a larger correction, which gives the main steering action.  
+
+**Integral term** accumulates past error. If the robot is always slightly to one side of the line (for example, because the sensors are not perfectly symmetric), the integral term slowly builds up and removes this steady‐state offset.  
+
+**Derivative term** reacts to how quickly the error is changing. It anticipates sharp turns and helps reduce overshoot and oscillations.  
+
+PID control is well suited for line following because the system is relatively slow (a small ground robot), the measurements are noisy, and the exact dynamics of motors and friction are difficult to model. PID provides a good balance between simplicity and performance.
+
+In the Arduino code the gains are stored in variables such as:
+```cpp
+double kP = 100.0;
+double kI = 0.05;
+double kD = 0.1;
+```
+which allow tuning by changing only a few numbers.
+
+---
+## PID Logic & Implementation
