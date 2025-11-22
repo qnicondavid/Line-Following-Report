@@ -127,3 +127,58 @@ ef = alpha * e + (1.0 - alpha) * ef;
 where ef stores the filtered error $e_f(t)$.
 
 ### Proportional Term
+The proportional contribution at step t is simply:
+
+$$
+P(t) = K_P \ e_f(t)
+$$
+
+In the implementation this is calculated as part of the total correction:
+```cpp
+double P = kP * ef;
+```
+This term provides an immediate steering response: the more the robot deviates from the center, the larger the correction.
+
+### Integral Term
+The integral term in discrete time can be approximated by a sum. If $\Delta t$ is the duration of one control cycle, then we have:
+
+$$
+I(t) = I(t-\Delta t) + K_I \ e_f(t) \ \Delta t
+$$
+
+In the code, the integral of the filtered error is stored in integralSum:
+```cpp
+integralSum += ef * dt; // dt in seconds
+// anti-windup: keep the integral within bounds
+integralSum = constrain(integralSum , -I_MAX , I_MAX);
+double I = kI * integralSum;
+```
+The call to constrain implements a simple anti‐windup mechanism: it prevents the integral term from grow‐ing without bound when the robot cannot correct quickly enough (for example on very sharp turns). This keeps the controller stable and avoids excessively large corrections after saturation.
+
+### Derivative Term
+The derivative term is based on the rate of change of the filtered error:
+
+$$
+D(t) = K_D \ \frac{e_f(t) - e_f(t-\Delta t)}{\Delta t}
+$$
+
+In the code it is computed from the current and previous filtered errors:
+```cpp
+double de = (ef - previousError) / dt;
+double D = kD * de;
+previousError = ef;
+```
+Keeping the derivative logic in place makes it easy to adjust if the robot starts to oscillate around the line.
+
+### Combining the PID Terms
+The three contributions are added to obtain the final correction signal $\omega(t)\$:
+
+$$
+\omega(t) = P(t) + I(t) + D(t)
+$$
+
+In code this is simply:
+```cpp
+double correction = P + I + D;
+```
+### Motor Speed Computation
