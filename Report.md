@@ -46,14 +46,20 @@ Intuitively, the goal is:
 - Both front IR sensors see the tape in a similar way when the robot is correctly centered.  
 - If the robot drifts to one side, one sensor moves further away from the tape and the other moves closer.  
 
-We denote the left and right sensor readings at discrete time step *k* as:
-
-$$
-s_L[k], \quad s_R[k]
-$$
+We denote the left and right sensor readings at discrete time step *k* as $L[t]$ and $R[t]$.
 
 A simple scalar error is then defined as:
 
 $$
-e[k] = s_L[k] - s_R[k]
+e[t] = L[t] - R[t]
 $$
+
+When the robot is perfectly centered, the two sensors see the same surface and the error satisfies  $e[k] \approx 0$.  
+
+If the robot drifts to the **right**, the left sensor moves onto the tape while the right sensor sees more of the bright floor, making $e[k]$ **positive**.  
+If the robot drifts to the **left**, the right sensor moves onto the tape while the left sensor sees more of the bright floor, making $e[k]$ **negative**.  
+
+The controller must drive this error back to zero by adjusting the speed of the left and right wheels.
+
+---
+## PID control and its advantages
