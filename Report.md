@@ -46,18 +46,18 @@ Intuitively, the goal is:
 - Both front IR sensors see the tape in a similar way when the robot is correctly centered.  
 - If the robot drifts to one side, one sensor moves further away from the tape and the other moves closer.  
 
-We denote the left and right sensor readings at discrete time step *k* as $L[t]$ and $R[t]$.
+We denote the left and right sensor readings at discrete time step *k* as $L(t)$ and $R(t)$.
 
 A simple scalar error is then defined as:
 
 $$
-e[t] = L[t] - R[t]
+e(t) = L(t) - R(t)
 $$
 
-When the robot is perfectly centered, the two sensors see the same surface and the error satisfies  $e[k] \approx 0$.  
+When the robot is perfectly centered, the two sensors see the same surface and the error satisfies  $e(k) \approx 0$.  
 
-If the robot drifts to the **right**, the left sensor moves onto the tape while the right sensor sees more of the bright floor, making $e[k]$ **positive**.  
-If the robot drifts to the **left**, the right sensor moves onto the tape while the left sensor sees more of the bright floor, making $e[k]$ **negative**.  
+If the robot drifts to the **right**, the left sensor moves onto the tape while the right sensor sees more of the bright floor, making $e(k)$ **positive**.  
+If the robot drifts to the **left**, the right sensor moves onto the tape while the left sensor sees more of the bright floor, making $e(k)$ **negative**.  
 
 The controller must drive this error back to zero by adjusting the speed of the left and right wheels.
 
@@ -100,3 +100,30 @@ which allow tuning by changing only a few numbers.
 
 ---
 ## PID Logic & Implementation
+
+### Sensor Reading & Error Computation
+At each iteration of the main loop the controller reads both IR sensors and computes the error:
+
+$$
+e(t) = L(t) - R(t)
+$$
+
+In code, this looks like:
+```cpp
+double e = leftSensor - rightSensor;
+```
+Because the raw sensor values are somewhat noisy, the error is low‐pass filtered using an exponential moving average:
+
+$$
+e_f(t) = \alpha \ e(t) + (1 - \alpha) \ e_f(t-\Delta t)
+$$
+
+where $0 < \alpha < 1$ is a smoothing factor. 
+
+In the code, this is implemented as:
+```cpp
+ef = alpha * e + (1.0 - alpha) * ef;
+```
+where ef stores the filtered error $e_f(t)$.
+
+### Proportional Term
