@@ -2,9 +2,9 @@
 ---
 ## Robot Configuration
 The robot is built around an **Arduino-compatible microcontroller** and a **four-wheel mecanum drive**.  
-Each wheel is powered by a **DC motor** driven by an **H-bridge**, so the software can set both the **direction** and the **PWM duty cycle** of every wheel independently.
+Each wheel is powered by a **DC motor** driven by an **H-bridge**, so the software can set both the **direction** and the **PWM duty cycle** of every wheel independently. 
 
-In this project, the mecanum wheels are used in a **simple differential-drive fashion**:
+In this project, the mecanum wheels are used in a **simple differential-drive fashion**: [5]
 - The two left wheels always receive the same command.
 - The two right wheels always receive the same command.
 
@@ -19,7 +19,7 @@ At the front of the robot, two **analog IR reflectance sensors** are mounted clo
 - One sensor is positioned slightly to the **left** of the line.  
 - The other sensor is positioned slightly to the **right** of the line.  
 
-These sensors measure the amount of **infrared light reflected** from the ground.  
+These sensors measure the amount of **infrared light reflected** from the ground. [4] 
 In practice, the **black electrical tape** produces a **higher analog reading** than the surrounding floor.  
 
 - When a sensor is directly above the tape, its output value **increases**.  
@@ -32,7 +32,7 @@ In the code, the two analog inputs are defined as:
 const int PIN_IR_LEFT_ANALOG = A1;
 const int PIN_IR_RIGHT_ANALOG = A3;
 ```
-and read every control cycle:
+and read every control cycle: [3]
 ```cpp
 int leftSensor  = analogRead(PIN_IR_LEFT_ANALOG);
 int rightSensor = analogRead(PIN_IR_RIGHT_ANALOG);
@@ -48,7 +48,7 @@ Intuitively, the goal is:
 
 We denote the left and right sensor readings at discrete time step *k* as $L(t)$ and $R(t)$.
 
-A simple scalar error is then defined as:
+A simple scalar error is then defined as: [5][6]
 
 $$
 e(t) = L(t) - R(t)
@@ -65,7 +65,7 @@ The controller must drive this error back to zero by adjusting the speed of the 
 ## PID Control & Advantages
 To keep the robot on the line we use a PID controller. 
 
-PID stands for Proportional–Integral–Derivative. It is a very common feedback control algorithm in robotics and industry because it is easy to implement, runs efficiently on small microcontrollers, and can be tuned experimentally without requiring an exact mathematical model of the robot.
+PID stands for Proportional–Integral–Derivative. It is a very common feedback control algorithm in robotics and industry because it is easy to implement, runs efficiently on small microcontrollers, and can be tuned experimentally without requiring an exact mathematical model of the robot. [1][6]
 
 In continuous time, for an error signal $e(t)$ and a control output $\omega(t)$, the PID law is:
 
@@ -75,7 +75,7 @@ $$
       + K_D \frac{d e(t)}{dt}
 $$
 
-Where:  
+Where:  [7]
 - $K_P$ is the proportional gain  
 - $K_I$ is the integral gain  
 - $K_D$ is the derivative gain  
@@ -88,7 +88,7 @@ Each term has a clear role:
 
 **Derivative term** reacts to how quickly the error is changing. It anticipates sharp turns and helps reduce overshoot and oscillations.  
 
-PID control is well suited for line following because the system is relatively slow (a small ground robot), the measurements are noisy, and the exact dynamics of motors and friction are difficult to model. PID provides a good balance between simplicity and performance.
+PID control is well suited for line following because the system is relatively slow (a small ground robot), the measurements are noisy, and the exact dynamics of motors and friction are difficult to model. PID provides a good balance between simplicity and performance. [2]
 
 In the Arduino code the gains are stored in variables such as:
 ```cpp
@@ -112,7 +112,7 @@ In code, this looks like:
 ```cpp
 double e = leftSensor - rightSensor;
 ```
-Because the raw sensor values are somewhat noisy, the error is low‐pass filtered using an exponential moving average:
+Because the raw sensor values are somewhat noisy, the error is low‐pass filtered using an exponential moving average: [7][8]
 
 $$
 e_f(t) = \alpha \ e(t) + (1 - \alpha) \ e_f(t-\Delta t)
@@ -153,7 +153,7 @@ integralSum += ef * dt; // dt in seconds
 integralSum = constrain(integralSum , -I_MAX , I_MAX);
 double I = kI * integralSum;
 ```
-The call to constrain implements a simple anti‐windup mechanism: it prevents the integral term from grow‐ing without bound when the robot cannot correct quickly enough (for example on very sharp turns). This keeps the controller stable and avoids excessively large corrections after saturation.
+The call to constrain implements a simple anti‐windup mechanism: it prevents the integral term from grow‐ing without bound when the robot cannot correct quickly enough (for example on very sharp turns). This keeps the controller stable and avoids excessively large corrections after saturation. [7][8]
 
 ### Derivative Term
 The derivative term is based on the rate of change of the filtered error:
@@ -182,7 +182,7 @@ In code this is simply:
 double correction = P + I + D;
 ```
 ### Motor Speed Computation
-Let $v_0$ be the nominal forward speed of the robot. The commanded speeds for the left and right sides are:
+Let $v_0$ be the nominal forward speed of the robot. The commanded speeds for the left and right sides are: [5]
 
 $$
 v_L(t) = v_0 - \omega(t)
@@ -206,7 +206,7 @@ leftSpeed = constrain(leftSpeed , minSpeed , maxSpeed);
 rightSpeed = constrain(rightSpeed , minSpeed , maxSpeed);
 ```
 These signed speeds are passed to a helper function that sets the motor driver pins for all four wheels.  
-Internally, this function decides the direction (forward or backward) and maps the absolute speed to a PWM value:
+Internally, this function decides the direction (forward or backward) and maps the absolute speed to a PWM value: [9]
 ```cpp
 void setMotor(int pwmPin , int dirPin , double speedSigned , bool wiringForward) {
       bool forwardDesired = (speedSigned >= 0);
@@ -361,5 +361,27 @@ The sensors provide a scalar error that measures how far the robot is from the c
 The PID loop filters this error, computes proportional, integral and optional derivative contributions, and turns them into a steering correction.
 
 This correction biases the left and right wheel speeds in opposite directions, so the robot continuously adjusts its trajectory and remains centered on the tape.
+
+---
+
+## References
+
+[1] Åström, K. J., & Hägglund, T. (2006). *PID Controllers: Theory, Design, and Tuning*. ISA.
+
+[2] Johnson, C. D. (2005). *Process Control Instrumentation Technology*. Pearson Prentice Hall.
+
+[3] Arduino. "analogRead() Function." Arduino Documentation.
+
+[4] Pololu Robotics. “QTR-1A and QTR-8A Reflectance Sensor Arrays.”  
+
+[5] Siegwart, R., Nourbakhsh, I., & Scaramuzza, D. (2011). *Introduction to Autonomous Mobile Robots*. MIT Press.  
+
+[6] Åström, K. J., & Murray, R. M. (2010). *Feedback Systems: An Introduction for Scientists and Engineers*. Princeton University Press.  
+
+[7] Franklin, G. F., Powell, J. D., & Emami-Naeini, A. (2014). *Feedback Control of Dynamic Systems*. Pearson.  
+
+[8] O. S. Nise (2011). *Control Systems Engineering*. Wiley.  
+
+[9] Arduino. “analogWrite() Function.” Arduino Documentation.  
 
 ---
