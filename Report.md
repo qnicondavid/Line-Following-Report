@@ -241,7 +241,7 @@ which applies the same left speed to both left wheels and the same right speed t
 
 ##### Test 1 - Low kP Test
 - **Initials:** kP = 3, kI = 0, kD = 0, minSpeed = -100, maxSpeed = 100  
-- **Results:** Didn't follow the line, kept moving forward  
+- **Results:** Did not follow the line, kept moving forward  
 - **Conclusion:** kP too low  
 
 ##### Test 2 - High kP Test
@@ -317,7 +317,7 @@ which applies the same left speed to both left wheels and the same right speed t
 ##### Test 16 - Tryout
 - **Initials:** kP = 40, kI = 0.05, kD = 0, minSpeed = -255, maxSpeed = 255  
 - **Results:** Follows the line, moves fast, has smoother oscillations  
-- **Conclusion:** Decrease kP  
+- **Conclusion:** Can decrease kP further  
 
 ### Case 2
 
@@ -328,8 +328,29 @@ which applies the same left speed to both left wheels and the same right speed t
   - Curves with wide angles (left/right)  
   - 90° turns (left/right)  
   - Zig-zag sections (left/right)  
-- **Surface coefficient of friction:** 0.5  
+- **Surface coefficient of friction:** 0.5
 
+#### Tests
+
+##### Test 1 - Try previous setup
+- **Initials:** kP = 40, kI = 0.05, kD = 0, minSpeed = -255, maxSpeed = 255  
+- **Results:** Follows the line, but misses 90° turns and low angles
+- **Conclusion:** Increase kP (needs more control on a smaller tape width)
+
+##### Test 2 - Increasing kP
+- **Initials:** kP = 80, kI = 0.05, kD = 0, minSpeed = -255, maxSpeed = 255  
+- **Results:** Follows the line, but misses low angles  
+- **Conclusion:** Increase kP further
+
+##### Test 3 - More kP
+- **Initials:** kP = 120, kI = 0.05, kD = 0, minSpeed = -255, maxSpeed = 255  
+- **Results:** Follows the line, unsmooth oscillations
+- **Conclusion:** Increase kD
+
+##### Test 4 - kD Tryout
+- **Initials:** kP = 120, kI = 0.05, kD = 0.1, minSpeed = -255, maxSpeed = 255  
+- **Results:** Follows the line, smooth oscillations, speedy
+- **Conclusion:** Can decrease kP, but this is a good setup for our case
 
 ---
 ## Summary
